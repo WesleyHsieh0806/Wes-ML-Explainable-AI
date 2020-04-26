@@ -529,7 +529,7 @@ Lime 的部分因為有現成的套件可以使用，因此下方直接 demo 如
 
 
 def predict(input):
-        # input: numpy array, (batches, height, width, channels)
+    # input: numpy array, (batches, height, width, channels)
 
     model.eval()
     input = torch.FloatTensor(input).permute(0, 3, 1, 2)
@@ -543,6 +543,12 @@ def predict(input):
 def segmentation(input):
     # 利用 skimage 提供的 segmentation 將圖片分成 100 塊
     return slic(input, n_segments=100, compactness=1, sigma=1)
+
+
+def explain(explainer, image, classifier_fn, segmentation_fn):
+    np.random.seed(12)
+    return explainer.explain_instance(
+        image=image, classifier_fn=classifier_fn, segmentation_fn=segmentation_fn)
 
 
 for i in range(3):
@@ -563,8 +569,8 @@ for i in range(3):
         # lime 這個套件要吃 numpy array
         # 看來lime要吃的input維度是(batch, height, width, channel)
         explainer = lime_image.LimeImageExplainer()
-        explaination = explainer.explain_instance(
-            image=x, classifier_fn=predict, segmentation_fn=segmentation)
+        explaination = explain(explainer,
+                               image=x, classifier_fn=predict, segmentation_fn=segmentation)
         # 基本上只要提供給 lime explainer 兩個關鍵的 function，事情就結束了
         # classifier_fn 定義圖片如何經過 model 得到 prediction
         # segmentation_fn 定義如何把圖片做 segmentation
